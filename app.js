@@ -17,7 +17,7 @@
   // Default Experimental Settings
   const DEFAULT_CONFIG = {
     pauseDuration: 10, // seconds for experimental group
-    assignmentMode: 'random', // 'random', 'experimental', 'control'
+    assignmentMode: 'experimental', // 'experimental', 'random', 'control'
     applyAllTasks: true,
     taskDurations: {
       task1: 10,
@@ -464,13 +464,12 @@
     } : Object.assign({ task1: 10, task2: 10, task3: 10 }, config.taskDurations);
 
     // Condition assignment
-    if (config.assignmentMode === 'experimental') {
-      appState.assignedCondition = 'Experimental';
-    } else if (config.assignmentMode === 'control') {
+    if (config.assignmentMode === 'control') {
       appState.assignedCondition = 'Control';
-    } else {
-      // Balanced random 50/50
+    } else if (config.assignmentMode === 'random') {
       appState.assignedCondition = Math.random() < 0.5 ? 'Experimental' : 'Control';
+    } else {
+      appState.assignedCondition = 'Experimental';
     }
 
     appState.experimentStartTime = Date.now();
@@ -579,11 +578,11 @@
     if (!confirmBtn) return;
 
     // Determine pause requirement for this condition
-    const isExperimental = appState.assignedCondition === 'Experimental';
+    const isControl = appState.assignedCondition === 'Control';
     const taskPauseSec = (appState.taskDurations && appState.taskDurations[taskId] !== undefined)
       ? appState.taskDurations[taskId]
       : appState.configuredPauseDuration;
-    const pauseSeconds = isExperimental ? taskPauseSec : 0;
+    const pauseSeconds = isControl ? 0 : Math.max(0, parseInt(taskPauseSec, 10) || 0);
     task.countdownDuration = pauseSeconds;
 
     // Restore previously selected option if user reloaded
@@ -592,7 +591,7 @@
     }
 
     // Timer handling
-    if (isExperimental && pauseSeconds > 0) {
+    if (pauseSeconds > 0) {
       // Check if timer already finished in this session
       if (task.countdownCompleted) {
         if (pauseBanner) {
@@ -605,8 +604,8 @@
         }
         if (countdownVal) countdownVal.textContent = '0';
         updateConfirmButtonState(taskId, 0);
-      } else if (task.finalSelection) {
-        // If an option is already selected (e.g. page reload or settings update), start/resume countdown
+      } else if (task.finalSelection && appState.timer.active) {
+        // If an option was selected and timer was active, resume countdown
         if (pauseBanner) pauseBanner.style.display = 'block';
         startCountdown(taskId, pauseSeconds, countdownVal, confirmBtn, pauseBanner);
       } else {
@@ -618,7 +617,7 @@
         updateConfirmButtonState(taskId, pauseSeconds);
       }
     } else {
-      // Control Group: Immediate Confirmation
+      // Control Group (or 0s pause): Immediate Confirmation
       if (pauseBanner) pauseBanner.style.display = 'none';
       task.countdownCompleted = true;
       updateConfirmButtonState(taskId, 0);
@@ -642,13 +641,20 @@
     // Clear any previous interval
     if (appState.timer.intervalId) {
       clearInterval(appState.timer.intervalId);
+      appState.timer.intervalId = null;
     }
 
     // Compute remaining time taking into account session persistence
     let remaining = durationSec;
     if (appState.timer.targetTime && appState.timer.active) {
       const now = Date.now();
-      remaining = Math.max(0, Math.ceil((appState.timer.targetTime - now) / 1000));
+      const diff = Math.ceil((appState.timer.targetTime - now) / 1000);
+      if (diff > 0 && diff <= durationSec) {
+        remaining = diff;
+      } else {
+        appState.timer.targetTime = Date.now() + (durationSec * 1000);
+        remaining = durationSec;
+      }
     } else {
       appState.timer.targetTime = Date.now() + (durationSec * 1000);
       appState.timer.active = true;
@@ -727,37 +733,33 @@
 
     markOptionSelected(taskId, option);
 
-    const isExperimental = appState.assignedCondition === 'Experimental';
+    const isControl = appState.assignedCondition === 'Control';
     const taskPauseSec = (appState.taskDurations && appState.taskDurations[taskId] !== undefined)
       ? appState.taskDurations[taskId]
       : appState.configuredPauseDuration;
-    const pauseSeconds = isExperimental ? taskPauseSec : 0;
+    const pauseSeconds = isControl ? 0 : Math.max(0, parseInt(taskPauseSec, 10) || 0);
 
     const { pauseBanner, countdownVal, confirmBtn } = getTaskElements(taskId);
 
-    // If Experimental group with pause:
-    if (isExperimental && pauseSeconds > 0) {
+    // If there is a pause configured:
+    if (pauseSeconds > 0) {
       if (!task.countdownCompleted) {
-        // Start review countdown upon selecting an option
+        // Start or continue countdown
         if (pauseBanner) pauseBanner.style.display = 'block';
-        if (!appState.timer.active) {
-          startCountdown(taskId, pauseSeconds, countdownVal, confirmBtn, pauseBanner);
-        } else {
-          let rem = Math.max(0, Math.ceil((appState.timer.targetTime - Date.now()) / 1000));
-          updateConfirmButtonState(taskId, rem);
-        }
+        startCountdown(taskId, pauseSeconds, countdownVal, confirmBtn, pauseBanner);
       } else {
-        // Countdown was already completed previously for this task
         updateConfirmButtonState(taskId, 0);
       }
     } else {
-      // Control group: immediate confirmation
+      // Control group or 0s pause: immediate confirmation
       task.countdownCompleted = true;
       updateConfirmButtonState(taskId, 0);
     }
 
-    // Smoothly ensure confirm button is visible in viewport
-    if (confirmBtn) {
+    // Smoothly ensure confirm button or banner is visible in viewport
+    if (pauseBanner && pauseSeconds > 0 && !task.countdownCompleted) {
+      pauseBanner.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    } else if (confirmBtn) {
       confirmBtn.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
 
@@ -1270,8 +1272,10 @@
     // Apply IMMEDIATELY to active session so user sees changes right away
     appState.configuredPauseDuration = pauseVal;
     appState.taskDurations = newConfig.taskDurations;
-    if (assignVal !== 'random') {
-      appState.assignedCondition = assignVal === 'experimental' ? 'Experimental' : 'Control';
+    if (assignVal === 'control') {
+      appState.assignedCondition = 'Control';
+    } else {
+      appState.assignedCondition = 'Experimental';
     }
     persistSession();
 
@@ -1279,6 +1283,8 @@
     if (['task1', 'task2', 'task3'].includes(appState.currentScreen)) {
       const task = appState.tasks[appState.currentScreen];
       task.countdownCompleted = false;
+      task.finalSelection = null;
+      task.initialSelection = null;
       appState.timer.active = false;
       appState.timer.targetTime = null;
       if (appState.timer.intervalId) {
@@ -1288,7 +1294,7 @@
       initTaskScreen(appState.currentScreen);
     }
 
-    alert(`Settings saved!\nPause Duration: ${pauseVal}s (T1: ${t1Val}s, T2: ${t2Val}s, T3: ${t3Val}s)\nCondition: ${assignVal}`);
+    alert(`Settings saved!\nPause Duration: ${pauseVal}s (T1: ${t1Val}s, T2: ${t2Val}s, T3: ${t3Val}s)\nCondition: ${appState.assignedCondition}`);
     closeResearcherModal();
   }
 
