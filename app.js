@@ -24,8 +24,8 @@
       task2: 10,
       task3: 10
     },
-    supabaseUrl: '',
-    supabaseKey: '',
+    supabaseUrl: 'https://ipervshaysndnhkiulig.supabase.co',
+    supabaseKey: 'sb_publishable_SFpH8o-ExvSriR_diEoZjw_n-I2DWNI',
     supabaseTable: 'experiment_responses'
   };
 
@@ -269,7 +269,7 @@
   }
 
   async function postToSupabase(url, key, table, payload) {
-    const cleanUrl = (url || '').trim().replace(/\/+$/, '');
+    const cleanUrl = (url || '').trim().replace(/\/rest\/v1\/?$/i, '').replace(/\/+$/, '');
     const cleanKey = (key || '').trim().replace(/^["']|["']$/g, '');
     const cleanTable = (table || 'experiment_responses').trim();
 
@@ -1268,7 +1268,7 @@
     }
 
     try {
-      const cleanUrl = url.replace(/\/+$/, '');
+      const cleanUrl = url.trim().replace(/\/rest\/v1\/?$/i, '').replace(/\/+$/, '');
       const res = await fetch(`${cleanUrl}/rest/v1/${table}?select=*&limit=1`, {
         method: 'GET',
         headers: {
