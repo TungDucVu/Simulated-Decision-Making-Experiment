@@ -24,8 +24,9 @@
       task2: 10,
       task3: 10
     },
-    ghRepo: 'TungDucVu/Simulated-Decision-Making-Experiment',
-    ghToken: ''
+    supabaseUrl: '',
+    supabaseKey: '',
+    supabaseTable: 'experiment_responses'
   };
 
   // --- Application State Model ---
@@ -201,78 +202,122 @@
     }
   }
 
-  function cleanRepoName(repoStr) {
-    if (!repoStr) return 'TungDucVu/Simulated-Decision-Making-Experiment';
-    return repoStr
-      .trim()
-      .replace(/^https?:\/\/github\.com\//i, '')
-      .replace(/\.git$/i, '')
-      .replace(/^\/+|\/+$/g, '');
+  // --- Supabase Cloud Database Helpers ---
+  function formatParticipantForSupabase(data) {
+    const t1 = (data.tasks && data.tasks.task1) || {};
+    const t2 = (data.tasks && data.tasks.task2) || {};
+    const t3 = (data.tasks && data.tasks.task3) || {};
+    const q = data.questionnaire || {};
+
+    const totalExpSec = (data.experimentEndTime && data.experimentStartTime)
+      ? parseFloat(((data.experimentEndTime - data.experimentStartTime) / 1000).toFixed(1))
+      : parseFloat((((t1.totalTimeSec || 0) + (t2.totalTimeSec || 0) + (t3.totalTimeSec || 0))).toFixed(1));
+
+    return {
+      participant_id: data.participantId || 'UNKNOWN',
+      assigned_condition: data.assignedCondition || 'UNKNOWN',
+      pause_duration_sec: data.configuredPauseDuration || 0,
+      date_completed: new Date().toISOString(),
+      total_experiment_time_sec: totalExpSec,
+
+      // Task 1
+      task1_product_choice: t1.finalSelection || '',
+      task1_initial_choice: t1.initialSelection || '',
+      task1_changed: (t1.initialSelection !== t1.finalSelection || t1.selectionChanges > 0) ? 'YES' : 'NO',
+      task1_decision_time_sec: parseFloat((t1.decisionTimeSec || 0).toFixed(2)),
+      task1_total_time_sec: parseFloat((t1.totalTimeSec || 0).toFixed(2)),
+
+      // Task 2
+      task2_permission_choice: t2.finalSelection || '',
+      task2_initial_choice: t2.initialSelection || '',
+      task2_changed: (t2.initialSelection !== t2.finalSelection || t2.selectionChanges > 0) ? 'YES' : 'NO',
+      task2_decision_time_sec: parseFloat((t2.decisionTimeSec || 0).toFixed(2)),
+      task2_total_time_sec: parseFloat((t2.totalTimeSec || 0).toFixed(2)),
+
+      // Task 3
+      task3_subscription_choice: t3.finalSelection || '',
+      task3_initial_choice: t3.initialSelection || '',
+      task3_changed: (t3.initialSelection !== t3.finalSelection || t3.selectionChanges > 0) ? 'YES' : 'NO',
+      task3_decision_time_sec: parseFloat((t3.decisionTimeSec || 0).toFixed(2)),
+      task3_total_time_sec: parseFloat((t3.totalTimeSec || 0).toFixed(2)),
+
+      // form.pdf Survey Fields
+      t1_recall_price: q.t1_recall || '',
+      t1_consequence_tradeoff: q.t1_consequence || '',
+      t1_confidence_1to7: q.t1_confidence || '',
+      t1_frustration_1to7: q.t1_frustration || '',
+
+      t2_recall_permissions: q.t2_recall || '',
+      t2_consequence_disclosure: q.t2_consequence || '',
+      t2_confidence_1to7: q.t2_confidence || '',
+      t2_frustration_1to7: q.t2_frustration || '',
+
+      t3_recall_monthly_price: q.t3_recall || '',
+      t3_consequence_cancellation: q.t3_consequence || '',
+      t3_confidence_1to7: q.t3_confidence || '',
+      t3_frustration_1to7: q.t3_frustration || '',
+
+      post_regret_1to7: q.post_regret || '',
+      post_rushed_1to5: q.post_rushed || '',
+      post_ecommerce_freq: q.post_ecommerce_freq || '',
+      post_impulsive_click_1to7: q.post_impulsive_click || '',
+      post_prior_preference: q.post_prior_pref || '',
+      participant_feedback: q.post_feedback || '',
+
+      raw_data: data
+    };
   }
 
-  function sanitizeToken(token) {
-    if (!token) return '';
-    return token
-      .trim()
-      .replace(/^["']|["']$/g, '')
-      .replace(/^(bearer|token)\s+/i, '')
-      .trim();
-  }
+  async function postToSupabase(url, key, table, payload) {
+    const cleanUrl = (url || '').trim().replace(/\/+$/, '');
+    const cleanKey = (key || '').trim().replace(/^["']|["']$/g, '');
+    const cleanTable = (table || 'experiment_responses').trim();
 
-  function getAuthHeader(token) {
-    const clean = sanitizeToken(token);
-    if (clean.startsWith('github_pat_')) {
-      return `Bearer ${clean}`;
+    if (!cleanUrl || !cleanKey) {
+      throw new Error('Supabase URL or Key not provided');
     }
-    return `token ${clean}`;
-  }
 
-  async function postGitHubDispatch(repo, token, payloadObject) {
-    const cleanRepo = cleanRepoName(repo);
-    const cleanToken = sanitizeToken(token);
-    const authHeader = getAuthHeader(cleanToken);
-
-    let res = await fetch(`https://api.github.com/repos/${cleanRepo}/dispatches`, {
+    const endpoint = `${cleanUrl}/rest/v1/${cleanTable}`;
+    return await fetch(endpoint, {
       method: 'POST',
       headers: {
-        'Accept': 'application/vnd.github+json',
-        'Authorization': authHeader,
-        'X-GitHub-Api-Version': '2022-11-28',
-        'Content-Type': 'application/json'
+        'apikey': cleanKey,
+        'Authorization': `Bearer ${cleanKey}`,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=representation'
       },
-      body: JSON.stringify({
-        event_type: 'record_response',
-        client_payload: payloadObject
-      })
+      body: JSON.stringify(payload)
     });
-
-    // Fallback: if 401 with 'token' scheme, try 'Bearer'
-    if (res.status === 401 && authHeader.startsWith('token ')) {
-      res = await fetch(`https://api.github.com/repos/${cleanRepo}/dispatches`, {
-        method: 'POST',
-        headers: {
-          'Accept': 'application/vnd.github+json',
-          'Authorization': `Bearer ${cleanToken}`,
-          'X-GitHub-Api-Version': '2022-11-28',
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          event_type: 'record_response',
-          client_payload: payloadObject
-        })
-      });
-    }
-
-    return res;
   }
 
-  // Sync participant result to master CSV on disk, GitHub Actions, or browser master archive
+  // Sync participant result to Supabase cloud, local server, or browser master archive
   async function syncParticipantToMasterCSV(allSessions) {
     const titleElem = document.getElementById('csv-status-title');
     const detailElem = document.getElementById('csv-status-detail');
     const count = (allSessions && allSessions.length) || 1;
 
-    // 1. Attempt to post to local server if running (Node.js or Python)
+    // 1. Attempt Supabase Cloud Insert if configured
+    const config = getResearcherConfig();
+    if (config.supabaseUrl && config.supabaseKey) {
+      try {
+        const payload = formatParticipantForSupabase(appState);
+        const res = await postToSupabase(config.supabaseUrl, config.supabaseKey, config.supabaseTable, payload);
+        if (res.ok) {
+          if (titleElem) titleElem.textContent = '⚡ Synced to Supabase Cloud Database';
+          if (detailElem) {
+            detailElem.textContent = `Participant ${appState.participantId} recorded in table '${config.supabaseTable || 'experiment_responses'}'. Instant cloud sync complete!`;
+          }
+          return;
+        } else {
+          const errText = await res.text();
+          console.warn(`Supabase API error (${res.status}):`, errText);
+        }
+      } catch (err) {
+        console.warn('Supabase sync error:', err);
+      }
+    }
+
+    // 2. Attempt to post to local server if running (Node.js or Python)
     try {
       const res = await fetch('/api/save-result', {
         method: 'POST',
@@ -292,30 +337,10 @@
       // Server not reachable (e.g. opened directly from file system or GitHub Pages)
     }
 
-    // 2. Attempt GitHub Action Workflow Dispatch if configured
-    const config = getResearcherConfig();
-    if (config.ghToken && config.ghRepo) {
-      try {
-        const ghRes = await postGitHubDispatch(config.ghRepo, config.ghToken, {
-          participant: appState
-        });
-
-        if (ghRes.ok || ghRes.status === 204) {
-          if (titleElem) titleElem.textContent = '✅ Dispatched to GitHub Actions CSV Pool';
-          if (detailElem) {
-            detailElem.textContent = `Participant ${appState.participantId} sent to GitHub Actions. Repository CSV will be updated automatically!`;
-          }
-          return;
-        }
-      } catch (err) {
-        console.warn('GitHub dispatch error:', err);
-      }
-    }
-
     // 3. Client-side fallback: saved in persistent browser storage
     if (titleElem) titleElem.textContent = '✅ Appended to Master Dataset';
     if (detailElem) {
-      detailElem.textContent = `Participant ${appState.participantId} logged. Total stored participants: ${count}. Click "Export Master CSV" to download the cumulative file.`;
+      detailElem.textContent = `Participant ${appState.participantId} logged locally. Total stored participants: ${count}. Click "Export Master CSV" to download cumulative file.`;
     }
   }
 
@@ -1149,10 +1174,12 @@
     if (t2Input) t2Input.value = tDur.task2 !== undefined ? tDur.task2 : 10;
     if (t3Input) t3Input.value = tDur.task3 !== undefined ? tDur.task3 : 10;
 
-    const ghRepoInput = document.getElementById('cfg-gh-repo');
-    const ghTokenInput = document.getElementById('cfg-gh-token');
-    if (ghRepoInput) ghRepoInput.value = config.ghRepo || 'TungDucVu/Simulated-Decision-Making-Experiment';
-    if (ghTokenInput) ghTokenInput.value = config.ghToken || '';
+    const sbUrlInput = document.getElementById('cfg-supabase-url');
+    const sbKeyInput = document.getElementById('cfg-supabase-key');
+    const sbTableInput = document.getElementById('cfg-supabase-table');
+    if (sbUrlInput) sbUrlInput.value = config.supabaseUrl || '';
+    if (sbKeyInput) sbKeyInput.value = config.supabaseKey || '';
+    if (sbTableInput) sbTableInput.value = config.supabaseTable || 'experiment_responses';
 
     try {
       const raw = localStorage.getItem(STORAGE_KEYS.ALL_SESSIONS_LOG);
@@ -1172,8 +1199,9 @@
   function saveResearcherSettings() {
     const pauseVal = isNaN(parseInt(cfgPauseInput.value, 10)) ? 10 : Math.max(0, parseInt(cfgPauseInput.value, 10));
     const assignVal = cfgOverrideSelect.value;
-    const ghRepoInput = document.getElementById('cfg-gh-repo');
-    const ghTokenInput = document.getElementById('cfg-gh-token');
+    const sbUrlInput = document.getElementById('cfg-supabase-url');
+    const sbKeyInput = document.getElementById('cfg-supabase-key');
+    const sbTableInput = document.getElementById('cfg-supabase-table');
     const applyAllInput = document.getElementById('cfg-apply-all');
     const isApplyAll = applyAllInput ? applyAllInput.checked : true;
 
@@ -1194,8 +1222,9 @@
         task2: t2Val,
         task3: t3Val
       },
-      ghRepo: ghRepoInput ? ghRepoInput.value.trim() : 'TungDucVu/Simulated-Decision-Making-Experiment',
-      ghToken: ghTokenInput ? ghTokenInput.value.trim() : ''
+      supabaseUrl: sbUrlInput ? sbUrlInput.value.trim() : '',
+      supabaseKey: sbKeyInput ? sbKeyInput.value.trim() : '',
+      supabaseTable: sbTableInput ? sbTableInput.value.trim() : 'experiment_responses'
     };
     saveResearcherConfig(newConfig);
 
@@ -1224,42 +1253,38 @@
     closeResearcherModal();
   }
 
-  async function triggerManualGitHubSync() {
-    const config = getResearcherConfig();
-    const raw = localStorage.getItem(STORAGE_KEYS.ALL_SESSIONS_LOG);
-    const list = raw ? JSON.parse(raw) : [appState];
+  async function testSupabaseConnection() {
+    const sbUrlInput = document.getElementById('cfg-supabase-url');
+    const sbKeyInput = document.getElementById('cfg-supabase-key');
+    const sbTableInput = document.getElementById('cfg-supabase-table');
 
-    // Read directly from the input fields in case user clicked Trigger without clicking Save Settings first
-    const ghTokenInput = document.getElementById('cfg-gh-token');
-    const ghRepoInput = document.getElementById('cfg-gh-repo');
-    if (ghTokenInput && ghTokenInput.value.trim()) {
-      config.ghToken = ghTokenInput.value.trim();
-    }
-    if (ghRepoInput && ghRepoInput.value.trim()) {
-      config.ghRepo = ghRepoInput.value.trim();
-    }
+    const url = (sbUrlInput ? sbUrlInput.value.trim() : '');
+    const key = (sbKeyInput ? sbKeyInput.value.trim() : '');
+    const table = (sbTableInput ? sbTableInput.value.trim() : 'experiment_responses') || 'experiment_responses';
 
-    if (!config.ghToken) {
-      const enteredToken = prompt('Enter your GitHub Personal Access Token (PAT):');
-      if (!enteredToken) return;
-      config.ghToken = enteredToken.trim();
-      if (ghTokenInput) ghTokenInput.value = config.ghToken;
-      saveResearcherConfig(config);
+    if (!url || !key) {
+      alert('Please enter your Supabase Project URL and Anon/Public Key first.');
+      return;
     }
 
     try {
-      const res = await postGitHubDispatch(config.ghRepo, config.ghToken, {
-        sessions: list
+      const cleanUrl = url.replace(/\/+$/, '');
+      const res = await fetch(`${cleanUrl}/rest/v1/${table}?select=*&limit=1`, {
+        method: 'GET',
+        headers: {
+          'apikey': key,
+          'Authorization': `Bearer ${key}`
+        }
       });
 
-      if (res.ok || res.status === 204) {
-        alert(`🚀 Success! Dispatched ${list.length} participant session(s) to GitHub Actions workflow. Check the Actions tab in your repository.`);
+      if (res.ok) {
+        alert(`⚡ Connected to Supabase successfully!\nTable '${table}' is active and ready to record participant responses.`);
       } else {
         const errText = await res.text();
-        alert(`GitHub API Error (${res.status}): ${errText}\n\nRecommendation: If using a Fine-Grained token, switch to a GitHub Classic Token (ghp_...) with 'repo' and 'workflow' checkboxes checked at https://github.com/settings/tokens`);
+        alert(`Supabase Connection Status (${res.status}):\n${errText}\n\nTip: Make sure table '${table}' exists in your Supabase database and Row Level Security (RLS) allows anon read/insert.`);
       }
     } catch (err) {
-      alert(`Network error dispatching to GitHub: ${err.message}`);
+      alert(`Network error connecting to Supabase: ${err.message}`);
     }
   }
 
@@ -1331,8 +1356,8 @@
     });
 
     btnExportAll.addEventListener('click', () => exportCSV(false));
-    const btnSyncGh = document.getElementById('btn-sync-github');
-    if (btnSyncGh) btnSyncGh.addEventListener('click', triggerManualGitHubSync);
+    const btnTestSb = document.getElementById('btn-test-supabase');
+    if (btnTestSb) btnTestSb.addEventListener('click', testSupabaseConnection);
     btnClearAll.addEventListener('click', () => {
       if (confirm('Clear all stored session logs from this browser?')) {
         localStorage.removeItem(STORAGE_KEYS.ALL_SESSIONS_LOG);

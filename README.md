@@ -6,21 +6,20 @@ Designed for Group 99, Technical Communication, IIIT Delhi.
 
 ---
 
-## 🌐 GitHub Pages & Automated Workflow Architecture
+## 🌐 Live Deployment & Supabase Cloud Database
 
-This repository is configured to run fully automated on **GitHub Pages** with continuous data collection via **GitHub Actions**:
+This application is deployed on **GitHub Pages** with live data recording directly to **Supabase**:
 
 1. **GitHub Pages Deployment ([`.github/workflows/deploy.yml`](.github/workflows/deploy.yml)):**
    - Automatically builds and deploys `index.html`, `styles.css`, and `app.js` to GitHub Pages upon push to `main`.
-   - To enable: In your repository, go to **Settings &rarr; Pages &rarr; Build and deployment &rarr; Source: GitHub Actions**.
+   - Access URL: `https://tungducvu.github.io/Simulated-Decision-Making-Experiment/`
 
-2. **Automated CSV Pool Updater ([`.github/workflows/record_response.yml`](.github/workflows/record_response.yml)):**
-   - Runs a GitHub Action whenever a participant completes the study.
-   - Takes their answers and appends them to [`data/experiment_results.csv`](data/experiment_results.csv) in the repository.
-   - Automatically commits and pushes the updated CSV back to the repository (`[skip ci]`).
-
-3. **Participant Data Pool:**
-   - [`data/experiment_results.csv`](data/experiment_results.csv) contains the accumulated responses from all participants, capturing choice selections, trade-off awareness, decision timings, and all 18 questionnaire items from [`form.pdf`](form.pdf).
+2. **Supabase Cloud Database Setup (1-Click SQL):**
+   - In your [Supabase Dashboard](https://supabase.com/dashboard), open the **SQL Editor** &rarr; **New query**.
+   - Copy & paste the contents of [`supabase_schema.sql`](supabase_schema.sql) and click **Run**.
+   - Copy your **Project URL** and **Anon Public Key** from **Project Settings &rarr; API**.
+   - In the web app, click the **⚙️ (Gear Icon)** in the header &rarr; paste the URL and Key &rarr; click **⚡ Test Supabase Connection** &rarr; **Save Settings**.
+   - As participants complete the study, each response is inserted instantly into the `experiment_responses` table. You can view, filter, or download the data as CSV anytime with 1 click from the Supabase Table Editor!
 
 ---
 
