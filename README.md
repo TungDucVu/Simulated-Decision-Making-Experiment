@@ -6,26 +6,45 @@ Designed for Group 99, Technical Communication, IIIT Delhi.
 
 ---
 
-## 🌐 Live Deployment & Supabase Cloud Database
+## 🌐 Live Deployment & Supabase Cloud Architecture
 
-This application is deployed on **GitHub Pages** with live data recording directly to **Supabase**:
+This application is deployed directly on **GitHub Pages** with real-time serverless data collection powered by **Supabase**:
 
-1. **GitHub Pages Deployment ([`.github/workflows/deploy.yml`](.github/workflows/deploy.yml)):**
-   - Automatically builds and deploys `index.html`, `styles.css`, and `app.js` to GitHub Pages upon push to `main`.
-   - Access URL: `https://tungducvu.github.io/Simulated-Decision-Making-Experiment/`
-
-2. **Supabase Cloud Database Setup (1-Click SQL):**
-   - In your [Supabase Dashboard](https://supabase.com/dashboard), open the **SQL Editor** &rarr; **New query**.
-   - Copy & paste the contents of [`supabase_schema.sql`](supabase_schema.sql) and click **Run**.
-   - Copy your **Project URL** and **Anon Public Key** from **Project Settings &rarr; API**.
-   - In the web app, click the **⚙️ (Gear Icon)** in the header &rarr; paste the URL and Key &rarr; click **⚡ Test Supabase Connection** &rarr; **Save Settings**.
-   - As participants complete the study, each response is inserted instantly into the `experiment_responses` table. You can view, filter, or download the data as CSV anytime with 1 click from the Supabase Table Editor!
+- **Live URL:** [https://tungducvu.github.io/Simulated-Decision-Making-Experiment/](https://tungducvu.github.io/Simulated-Decision-Making-Experiment/)
+- **Zero-Setup Architecture:** Participants access the study on any laptop or phone. No local server, installation, or configuration is required.
+- **Instant Cloud Persistence:** Upon questionnaire completion, participant metrics and all 18 survey responses are streamed directly into the Supabase database (`experiment_responses` table).
+- **1-Click CSV Export:** In the Supabase Dashboard &rarr; Table Editor &rarr; `experiment_responses`, click **Export to CSV** to download the cumulative dataset at any time.
 
 ---
 
-## 🚀 Running Locally (Optional)
+## 🔒 Security & Data Integrity Architecture
 
-You can also run the experiment locally on your computer:
+The project adheres to strict behavioral research data integrity and security practices:
+
+1. **Row-Level Security (RLS) Protection:**
+   - The Supabase table is guarded by PostgreSQL Row-Level Security.
+   - Anonymous participants are granted **INSERT-only** access.
+   - Anonymous clients **cannot** modify, overwrite, or delete existing participant records.
+   - Participant confidentiality is preserved — survey responses cannot be scraped by other participants.
+
+2. **Safe Client-Side Credentials:**
+   - The application utilizes Supabase's public `anon` / `publishable` API key (`sb_publishable_...`).
+   - The administrative `service_role` secret is **never** exposed or committed.
+   - All client-side credentials are safe for public browser execution under RLS.
+
+3. **Input Sanitization & XSS Defense:**
+   - All dynamically rendered fields (participant IDs, choices, survey ratings, text feedback) pass through context-aware HTML entity encoding (`escapeHtml`) before DOM insertion.
+   - All forms prevent submission without completion of required trade-off and recall checks.
+
+4. **Clean Repository Policy:**
+   - Raw participant CSVs and temporary files are excluded via `.gitignore`.
+   - The repository contains no sensitive tokens, build artifacts, or participant PII.
+
+---
+
+## 🚀 Running Locally (Optional Offline Lab Backup)
+
+For completely offline lab environments without internet access:
 
 ```powershell
 # Option A: Double-click run_experiment.bat (Windows)
@@ -36,7 +55,7 @@ node server.js
 # Option C: Run with Python
 python server.py
 ```
-Open **`http://localhost:3000`** in your browser. All data will be saved locally to `data/experiment_results.csv`.
+Open **`http://localhost:3000`** in any browser. In offline mode, responses are automatically appended to a local `data/experiment_results.csv` (which is git-ignored to prevent polluting the codebase).
 
 ---
 

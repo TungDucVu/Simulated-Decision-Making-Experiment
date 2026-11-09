@@ -24,4 +24,6 @@ Desktop.ini
 .env
 *.tmp
 *.temp
+data/
+*.csv
 

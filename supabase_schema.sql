@@ -69,24 +69,26 @@ create table if not exists public.experiment_responses (
 -- 2. Enable Row Level Security (RLS)
 alter table public.experiment_responses enable row level security;
 
--- 3. Allow anonymous participant submissions (INSERT)
+-- 3. Security Policy: Allow anonymous participant submissions (INSERT only)
 create policy "Allow anonymous inserts"
   on public.experiment_responses
   for insert
+  to anon, authenticated
   with check (true);
 
--- 4. Allow reading responses (SELECT)
-create policy "Allow read access"
-  on public.experiment_responses
-  for select
-  using (true);
+-- 4. Security Policy: Confidentiality Protection
+-- By default, anonymous participants can INSERT their own answers, but CANNOT
+-- read, dump, modify, or delete any other participants' data.
+-- If you need anonymous client-side reading in the future, uncomment the policy below:
+-- create policy "Allow read access" on public.experiment_responses for select using (true);
 
 -- 5. Create helpful indexes for filtering by condition or date
 create index if not exists idx_experiment_responses_pid on public.experiment_responses (participant_id);
 create index if not exists idx_experiment_responses_condition on public.experiment_responses (assigned_condition);
 create index if not exists idx_experiment_responses_created_at on public.experiment_responses (created_at desc);
 
--- 6. Grant permissions to standard anon/authenticated roles
+-- 6. Principle of Least Privilege: Grant only necessary table permissions to anonymous users
 grant usage on schema public to anon, authenticated;
-grant all on table public.experiment_responses to anon, authenticated;
-grant all on sequence public.experiment_responses_id_seq to anon, authenticated;
+grant insert on table public.experiment_responses to anon;
+grant select, update, delete on table public.experiment_responses to authenticated;
+grant usage, select on sequence public.experiment_responses_id_seq to anon, authenticated;
