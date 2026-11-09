@@ -151,8 +151,13 @@ function main() {
 
   participants.forEach(p => {
     if (!p || !p.participantId) return;
+    if (existingContent.includes(`"${p.participantId}"`) || existingContent.includes(p.participantId)) {
+      console.log(`Participant ${p.participantId} already exists in CSV. Skipping duplicate.`);
+      return;
+    }
     const row = formatParticipantRow(p);
     fs.appendFileSync(CSV_FILE, row + '\n', 'utf8');
+    existingContent += row + '\n';
     appendedCount++;
     console.log(`Appended participant: ${p.participantId}`);
   });
