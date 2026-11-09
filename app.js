@@ -605,13 +605,13 @@
         }
         if (countdownVal) countdownVal.textContent = '0';
         updateConfirmButtonState(taskId, 0);
-      } else if (appState.timer.active && appState.timer.targetTime && task.finalSelection) {
-        // Resume active countdown if reloaded mid-countdown after selection
+      } else if (task.finalSelection) {
+        // If an option is already selected (e.g. page reload or settings update), start/resume countdown
         if (pauseBanner) pauseBanner.style.display = 'block';
         startCountdown(taskId, pauseSeconds, countdownVal, confirmBtn, pauseBanner);
       } else {
         // Option NOT selected yet: DO NOT start timer yet!
-        // Timer will start automatically when participant selects an option
+        // Timer will start automatically across all timer options when participant selects an option
         if (pauseBanner) pauseBanner.style.display = 'none';
         if (countdownVal) countdownVal.textContent = pauseSeconds;
         task.countdownCompleted = false;
