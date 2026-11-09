@@ -1,0 +1,46 @@
+name: Record Participant Response
+
+on:
+  repository_dispatch:
+    types: [record_response]
+  workflow_dispatch:
+    inputs:
+      participant_data:
+        description: 'Participant data JSON'
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  record:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Append response to CSV
+        run: node scripts/append_result.js
+        env:
+          CLIENT_PAYLOAD: ${{ toJson(github.event.client_payload) }}
+          INPUT_DATA: ${{ github.event.inputs.participant_data }}
+
+      - name: Commit and push updated CSV
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add data/experiment_results.csv
+          if git diff --staged --quiet; then
+            echo "No changes to commit."
+          else
+            git pull --rebase origin main
+            git commit -m "chore(data): record response from participant [skip ci]"
+            git push origin main
+          fi

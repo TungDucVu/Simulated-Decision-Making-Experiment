@@ -1,0 +1,966 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Simulated Consumer Decision Study</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <!-- Header Bar -->
+  <header class="app-header">
+    <div class="header-container">
+      <div class="brand">
+        <span class="brand-logo">⚖️</span>
+        <span class="brand-title">DecisionLab Study</span>
+      </div>
+      <div class="header-meta">
+        <span id="session-badge" class="session-badge" style="display: none;">Participant: <strong id="header-pid">-</strong></span>
+        <button id="btn-admin-config" class="btn-icon" title="Researcher Settings" aria-label="Researcher Settings">⚙️</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Progress Bar (Active during tasks & questionnaire) -->
+  <div id="progress-container" class="progress-container" style="display: none;">
+    <div class="progress-bar-inner">
+      <div id="progress-fill" class="progress-fill" style="width: 0%;"></div>
+    </div>
+    <div class="progress-labels">
+      <span id="progress-step-text">Task 1 of 3</span>
+      <span id="progress-pct-text">20%</span>
+    </div>
+  </div>
+
+  <main class="main-content">
+
+    <!-- SCREEN 1: WELCOME SCREEN -->
+    <section id="screen-welcome" class="screen-card active">
+      <div class="welcome-hero">
+        <div class="icon-circle">🛒</div>
+        <h1>Consumer Decision-Making Study</h1>
+        <p class="subtitle">An interactive investigation into modern digital decision interfaces</p>
+      </div>
+
+      <div class="info-callout">
+        <h3>About This Study</h3>
+        <p>You will be presented with three realistic everyday consumer scenarios: an online shopping decision, a mobile application permission request, and a digital service subscription offer.</p>
+        <p>Please review each scenario naturally, just as you would when using regular websites or applications on your computer or mobile device.</p>
+      </div>
+
+      <div class="study-points">
+        <div class="point-item">
+          <span class="point-icon">⏱️</span>
+          <div>
+            <strong>Duration</strong>
+            <p>Approximately 3–5 minutes to complete.</p>
+          </div>
+        </div>
+        <div class="point-item">
+          <span class="point-icon">🔒</span>
+          <div>
+            <strong>Confidentiality</strong>
+            <p>Completely anonymous. No personal identifiable information is collected.</p>
+          </div>
+        </div>
+        <div class="point-item">
+          <span class="point-icon">🎯</span>
+          <div>
+            <strong>Realistic Simulation</strong>
+            <p>Interactive interfaces modelled after popular consumer applications.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="actions-row">
+        <button id="btn-start-welcome" class="btn btn-primary btn-lg">Begin Study &rarr;</button>
+      </div>
+    </section>
+
+
+    <!-- SCREEN 2: INSTRUCTIONS SCREEN -->
+    <section id="screen-instructions" class="screen-card">
+      <div class="screen-header">
+        <h2>Participant Instructions</h2>
+        <p class="section-lead">Please read these brief guidelines before proceeding.</p>
+      </div>
+
+      <div class="instruction-box">
+        <ol class="styled-list">
+          <li>
+            <strong>Three Independent Scenarios:</strong>
+            You will complete three independent scenarios in sequence. Take time to read the details, pricing, permissions, and conditions provided on each screen.
+          </li>
+          <li>
+            <strong>Make Genuine Choices:</strong>
+            There are no right or wrong answers. Choose the option that best reflects what you would realistically decide in that situation.
+          </li>
+          <li>
+            <strong>Confirming Your Choice:</strong>
+            Select your preferred option by clicking on it. When satisfied, proceed by clicking the confirmation button at the bottom of the page.
+          </li>
+          <li>
+            <strong>Final Feedback:</strong>
+            After the three scenarios, you will answer a brief 6-question reflection survey followed by an instant summary report.
+          </li>
+        </ol>
+      </div>
+
+      <div class="notice-box">
+        <span class="notice-icon">ℹ️</span>
+        <p>Please complete all steps in one uninterrupted session. Do not refresh or navigate backward during the experiment.</p>
+      </div>
+
+      <div class="actions-row">
+        <button id="btn-proceed-instructions" class="btn btn-primary btn-lg">I Understand &mdash; Continue</button>
+      </div>
+    </section>
+
+
+    <!-- SCREEN 3: ASSIGNMENT SCREEN (Seamless initialization) -->
+    <section id="screen-assignment" class="screen-card text-center">
+      <div class="spinner-wrapper">
+        <div class="spinner"></div>
+        <h3>Initializing Session</h3>
+        <p class="text-muted">Preparing experimental environment and generating your anonymous participant profile...</p>
+      </div>
+    </section>
+
+
+    <!-- SCREEN 4: TASK 1 - CONSUMER PRICE & VALUE COMPARISON -->
+    <section id="screen-task-1" class="screen-card task-screen">
+      <div class="task-badge">Task 1 of 3: Online Shopping</div>
+      <h2>Select a Pair of Wireless Headphones</h2>
+      <p class="scenario-prompt">
+        <strong>Scenario:</strong> You are shopping for a new pair of wireless Bluetooth headphones for personal use. Examine the three options below and choose the one you would purchase.
+      </p>
+
+      <div class="products-grid">
+        <!-- Product A -->
+        <div class="choice-card product-card" data-task="task1" data-option="Product A">
+          <div class="card-badge tier-budget">Budget Friendly</div>
+          <div class="product-icon">🎧</div>
+          <h3 class="product-title">SoundWave Basic</h3>
+          <div class="product-price">
+            <span class="currency">₹</span><span class="amount">1,499</span>
+          </div>
+          <ul class="specs-list">
+            <li><span class="spec-label">Battery Life:</span> <strong>20 Hours</strong></li>
+            <li><span class="spec-label">Noise Cancellation:</span> <span class="badge-no">No (Passive only)</span></li>
+            <li><span class="spec-label">Warranty:</span> <strong>6 Months</strong></li>
+            <li><span class="spec-label">Connectivity:</span> Bluetooth 5.0</li>
+          </ul>
+          <div class="select-indicator">Click to Select</div>
+        </div>
+
+        <!-- Product B -->
+        <div class="choice-card product-card" data-task="task1" data-option="Product B">
+          <div class="card-badge tier-premium">Top Rated</div>
+          <div class="product-icon">🎧</div>
+          <h3 class="product-title">AeroPro Max</h3>
+          <div class="product-price">
+            <span class="currency">₹</span><span class="amount">2,499</span>
+          </div>
+          <ul class="specs-list">
+            <li><span class="spec-label">Battery Life:</span> <strong>35 Hours</strong></li>
+            <li><span class="spec-label">Noise Cancellation:</span> <span class="badge-yes">Yes (Active ANC)</span></li>
+            <li><span class="spec-label">Warranty:</span> <strong>1 Year Full</strong></li>
+            <li><span class="spec-label">Connectivity:</span> Bluetooth 5.3 + Multipoint</li>
+          </ul>
+          <div class="select-indicator">Click to Select</div>
+        </div>
+
+        <!-- Product C -->
+        <div class="choice-card product-card" data-task="task1" data-option="Product C">
+          <div class="card-badge tier-balanced">Value Pick</div>
+          <div class="product-icon">🎧</div>
+          <h3 class="product-title">ClearTone Plus</h3>
+          <div class="product-price">
+            <span class="currency">₹</span><span class="amount">1,999</span>
+          </div>
+          <ul class="specs-list">
+            <li><span class="spec-label">Battery Life:</span> <strong>30 Hours</strong></li>
+            <li><span class="spec-label">Noise Cancellation:</span> <span class="badge-no">No (Passive only)</span></li>
+            <li><span class="spec-label">Warranty:</span> <strong>1 Year Full</strong></li>
+            <li><span class="spec-label">Connectivity:</span> Bluetooth 5.2</li>
+          </ul>
+          <div class="select-indicator">Click to Select</div>
+        </div>
+      </div>
+
+      <!-- Pause / Countdown Banner (Experimental Group only) -->
+      <div id="pause-container-1" class="pause-banner" style="display: none;">
+        <div class="pause-content">
+          <div class="pause-timer-ring">
+            <span id="countdown-val-1" class="timer-number">10</span>
+            <span class="timer-sec">sec</span>
+          </div>
+          <div class="pause-text">
+            <h4>Review Required</h4>
+            <p>Take a moment to review the key information before confirming your decision.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div class="task-action-footer">
+        <div class="selection-status-text" id="status-task-1">Please select an option above to proceed.</div>
+        <button id="btn-confirm-task-1" class="btn btn-confirm" disabled>
+          Confirm Purchase Decision
+        </button>
+      </div>
+    </section>
+
+
+    <!-- SCREEN 5: TASK 2 - APP PERMISSION & PRIVACY DECISION -->
+    <section id="screen-task-2" class="screen-card task-screen">
+      <div class="task-badge">Task 2 of 3: App Permissions & Privacy</div>
+      <h2>Application Permission Request</h2>
+      <p class="scenario-prompt">
+        <strong>Scenario:</strong> You just installed <em>FitLife</em>, a mobile health and wellness tracker that offers daily workout routines, step tracking, and personalised nutrition recommendations.
+      </p>
+
+      <!-- Simulated Mobile Permission Dialog -->
+      <div class="mobile-dialog-wrapper">
+        <div class="mobile-dialog">
+          <div class="app-identity">
+            <div class="app-icon">🏃‍♂️</div>
+            <div class="app-meta">
+              <h3>FitLife: Wellness & Activity</h3>
+              <span class="app-sub">Version 3.4.1 &bull; FitLife Tech Labs</span>
+            </div>
+          </div>
+
+          <div class="permission-explanation">
+            FitLife requests access to the following capabilities to personalise your daily experience:
+          </div>
+
+          <div class="permission-items">
+            <div class="perm-row">
+              <span class="perm-icon">📍</span>
+              <div class="perm-details">
+                <strong>Location Access (including background location)</strong>
+                <p>Tracks outdoor running routes and matches nearby fitness events even when the app is closed.</p>
+              </div>
+            </div>
+            <div class="perm-row">
+              <span class="perm-icon">👥</span>
+              <div class="perm-details">
+                <strong>Contacts Access</strong>
+                <p>Finds friends already using FitLife for social leaderboards and community challenges.</p>
+              </div>
+            </div>
+            <div class="perm-row">
+              <span class="perm-icon">❤️</span>
+              <div class="perm-details">
+                <strong>Activity & Fitness Sensor Data</strong>
+                <p>Syncs real-time step counts, heart rate readings, and calories burned.</p>
+              </div>
+            </div>
+            <div class="perm-row">
+              <span class="perm-icon">🔔</span>
+              <div class="perm-details">
+                <strong>Push Notifications</strong>
+                <p>Sends hydration reminders, goal updates, and promotional health offers.</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="privacy-disclosure-box">
+            <strong>Privacy Disclosure:</strong>
+            <p>FitLife shares anonymized location trails, usage patterns, and diagnostic data with verified third-party analytics and advertising partners to maintain free services.</p>
+          </div>
+
+          <div class="permission-options-group">
+            <label class="choice-card perm-option" data-task="task2" data-option="Allow All Permissions">
+              <div class="perm-opt-content">
+                <strong>Allow All Permissions</strong>
+                <p>Enable location (including background), contacts, sensor data, and notifications.</p>
+              </div>
+              <span class="radio-disc"></span>
+            </label>
+
+            <label class="choice-card perm-option" data-task="task2" data-option="Allow Only Essential Permissions">
+              <div class="perm-opt-content">
+                <strong>Allow Only Essential Permissions</strong>
+                <p>Grants Activity & Sensor data only; restricts background location, contacts, and ad tracking.</p>
+              </div>
+              <span class="radio-disc"></span>
+            </label>
+
+            <label class="choice-card perm-option" data-task="task2" data-option="Deny Permissions">
+              <div class="perm-opt-content">
+                <strong>Deny Permissions</strong>
+                <p>Disallow all permissions; continue with basic offline and manual logging features.</p>
+              </div>
+              <span class="radio-disc"></span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pause / Countdown Banner (Experimental Group only) -->
+      <div id="pause-container-2" class="pause-banner" style="display: none;">
+        <div class="pause-content">
+          <div class="pause-timer-ring">
+            <span id="countdown-val-2" class="timer-number">10</span>
+            <span class="timer-sec">sec</span>
+          </div>
+          <div class="pause-text">
+            <h4>Review Required</h4>
+            <p>Take a moment to review the key information before confirming your decision.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div class="task-action-footer">
+        <div class="selection-status-text" id="status-task-2">Please select an option above to proceed.</div>
+        <button id="btn-confirm-task-2" class="btn btn-confirm" disabled>
+          Confirm Permission Choice
+        </button>
+      </div>
+    </section>
+
+
+    <!-- SCREEN 6: TASK 3 - SUBSCRIPTION & AUTO-RENEWAL DECISION -->
+    <section id="screen-task-3" class="screen-card task-screen">
+      <div class="task-badge">Task 3 of 3: Digital Subscription</div>
+      <h2>Choose Your Subscription Plan</h2>
+      <p class="scenario-prompt">
+        <strong>Scenario:</strong> You are exploring <em>StreamFlow</em>, an entertainment and productivity streaming suite offering unlimited access to music, ad-free video podcasts, and cloud productivity tools.
+      </p>
+
+      <div class="subscription-plans-grid">
+        <!-- Option 1: Intro offer with auto-renew -->
+        <div class="choice-card sub-card featured" data-task="task3" data-option="Start Free/Introductory Offer">
+          <div class="card-ribbon">Most Popular</div>
+          <div class="sub-card-header">
+            <h3>Special Introductory Offer</h3>
+            <p class="sub-tagline">30 days full premium access</p>
+          </div>
+          <div class="pricing-headline">
+            <span class="currency">₹</span><span class="amount">99</span>
+            <span class="per-period">for Month 1</span>
+          </div>
+          <div class="renewal-term-box">
+            <span class="term-warning-icon">⚠️</span>
+            <p><strong>Auto-Renewal Terms:</strong> Renews automatically at the regular price of <strong>₹499/month</strong> starting month 2 unless cancelled prior to renewal date via Account Settings.</p>
+          </div>
+          <ul class="sub-features">
+            <li>✔ Full access to high-res streaming & downloads</li>
+            <li>✔ Cloud productivity suite included</li>
+            <li>✔ Billed automatically to payment method</li>
+          </ul>
+          <div class="select-indicator">Select Introductory Offer</div>
+        </div>
+
+        <!-- Option 2: Monthly Standard -->
+        <div class="choice-card sub-card" data-task="task3" data-option="Choose Monthly Subscription">
+          <div class="sub-card-header">
+            <h3>Monthly Standard Plan</h3>
+            <p class="sub-tagline">Regular monthly billing</p>
+          </div>
+          <div class="pricing-headline">
+            <span class="currency">₹</span><span class="amount">499</span>
+            <span class="per-period">/ month</span>
+          </div>
+          <div class="renewal-term-box neutral-box">
+            <p>Standard month-to-month subscription with auto-renewal. Cancel anytime in account settings before billing cycle.</p>
+          </div>
+          <ul class="sub-features">
+            <li>✔ Full access to high-res streaming & downloads</li>
+            <li>✔ Cloud productivity suite included</li>
+            <li>✔ Cancel anytime with one click</li>
+          </ul>
+          <div class="select-indicator">Select Monthly Plan</div>
+        </div>
+
+        <!-- Option 3: Do not subscribe -->
+        <div class="choice-card sub-card decline-card" data-task="task3" data-option="Do Not Subscribe">
+          <div class="sub-card-header">
+            <h3>Do Not Subscribe</h3>
+            <p class="sub-tagline">Decline subscription offer</p>
+          </div>
+          <div class="pricing-headline">
+            <span class="currency">₹</span><span class="amount">0</span>
+            <span class="per-period">free tier</span>
+          </div>
+          <div class="renewal-term-box neutral-box">
+            <p>No credit card or recurring charges. Enjoy basic ad-supported content with limited bandwidth.</p>
+          </div>
+          <ul class="sub-features">
+            <li>✔ Standard definition streaming</li>
+            <li>✔ Occasional audio & banner ads</li>
+            <li>✔ Zero recurring commitments</li>
+          </ul>
+          <div class="select-indicator">Decline & Stay Free</div>
+        </div>
+      </div>
+
+      <!-- Pause / Countdown Banner (Experimental Group only) -->
+      <div id="pause-container-3" class="pause-banner" style="display: none;">
+        <div class="pause-content">
+          <div class="pause-timer-ring">
+            <span id="countdown-val-3" class="timer-number">10</span>
+            <span class="timer-sec">sec</span>
+          </div>
+          <div class="pause-text">
+            <h4>Review Required</h4>
+            <p>Take a moment to review the key information before confirming your decision.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div class="task-action-footer">
+        <div class="selection-status-text" id="status-task-3">Please select an option above to proceed.</div>
+        <button id="btn-confirm-task-3" class="btn btn-confirm" disabled>
+          Confirm Subscription Choice
+        </button>
+      </div>
+    </section>
+
+
+    <!-- SCREEN 7: FINAL QUESTIONNAIRE (BASED ON form.pdf) -->
+    <section id="screen-questionnaire" class="screen-card">
+      <div class="screen-header">
+        <div class="task-badge">Post-Study Evaluation</div>
+        <h2>Digital Decision-Making: Survey on Interface Design & Choices</h2>
+        <p class="section-lead">Group 99 &bull; Technical Communication, IIIT Delhi</p>
+        <div class="form-pdf-badge-bar">
+          <span class="badge-tag">📋 Official Study Instrument</span>
+          <a href="form.pdf" target="_blank" class="pdf-link-btn">📄 View Original form.pdf</a>
+        </div>
+      </div>
+
+      <form id="form-questionnaire" class="survey-form">
+
+        <!-- SECTION 1: TASK 1 SHOPPING -->
+        <div class="survey-section-divider">
+          <h3>Task 1: Shopping (Consumer Price &amp; Value Comparison)</h3>
+          <p>Please answer the following questions based on the wireless headphones scenario you just completed.</p>
+        </div>
+
+        <!-- Q1: Recall -->
+        <div class="survey-question-card">
+          <label class="q-title">1. Recall: What was the price of the headphones that featured Active Noise Cancellation (Product B)? <span class="req-star">*</span></label>
+          <div class="radio-vertical-list">
+            <label class="radio-choice-item"><input type="radio" name="t1_recall" value="₹1,499" required><span>₹1,499</span></label>
+            <label class="radio-choice-item"><input type="radio" name="t1_recall" value="₹1,999"><span>₹1,999</span></label>
+            <label class="radio-choice-item"><input type="radio" name="t1_recall" value="₹2,499"><span>₹2,499</span></label>
+            <label class="radio-choice-item"><input type="radio" name="t1_recall" value="₹2,999"><span>₹2,999</span></label>
+          </div>
+        </div>
+
+        <!-- Q2: Consequence -->
+        <div class="survey-question-card">
+          <label class="q-title">2. Consequence: If you chose the cheapest option (Product A at ₹1,499), what specific trade-off were you making compared to the other options? <span class="req-star">*</span></label>
+          <div class="radio-vertical-list">
+            <label class="radio-choice-item"><input type="radio" name="t1_consequence" value="Shorter warranty (6 months) and lower battery life (20 hours)" required><span>Shorter warranty (6 months) and lower battery life (20 hours)</span></label>
+            <label class="radio-choice-item"><input type="radio" name="t1_consequence" value="No noise cancellation but longer battery life (35 hours)"><span>No noise cancellation but longer battery life (35 hours)</span></label>
+            <label class="radio-choice-item"><input type="radio" name="t1_consequence" value="Higher price for better sound quality"><span>Higher price for better sound quality</span></label>
+            <label class="radio-choice-item"><input type="radio" name="t1_consequence" value="There were no trade-offs; all products had the same warranty"><span>There were no trade-offs; all products had the same warranty</span></label>
+          </div>
+        </div>
+
+        <!-- Q3: Confidence (1-7) -->
+        <div class="survey-question-card">
+          <label class="q-title">3. Confidence: How confident are you that you made the best possible choice for this task? <span class="req-star">*</span></label>
+          <div class="scale-row-wrapper">
+            <span class="scale-endpoint-label">Not confident</span>
+            <div class="scale-numbers-group">
+              <label class="scale-btn"><input type="radio" name="t1_confidence" value="1" required><span>1</span></label>
+              <label class="scale-btn"><input type="radio" name="t1_confidence" value="2"><span>2</span></label>
+              <label class="scale-btn"><input type="radio" name="t1_confidence" value="3"><span>3</span></label>
+              <label class="scale-btn"><input type="radio" name="t1_confidence" value="4"><span>4</span></label>
+              <label class="scale-btn"><input type="radio" name="t1_confidence" value="5"><span>5</span></label>
+              <label class="scale-btn"><input type="radio" name="t1_confidence" value="6"><span>6</span></label>
+              <label class="scale-btn"><input type="radio" name="t1_confidence" value="7"><span>7</span></label>
+            </div>
+            <span class="scale-endpoint-label">Extremely confident</span>
+          </div>
+        </div>
+
+        <!-- Q4: Frustration (1-7) -->
+        <div class="survey-question-card">
+          <label class="q-title">4. Frustration: How frustrated did you feel while completing this digital decision? <span class="req-star">*</span></label>
+          <div class="scale-row-wrapper">
+            <span class="scale-endpoint-label">Not frustrated</span>
+            <div class="scale-numbers-group">
+              <label class="scale-btn"><input type="radio" name="t1_frustration" value="1" required><span>1</span></label>
+              <label class="scale-btn"><input type="radio" name="t1_frustration" value="2"><span>2</span></label>
+              <label class="scale-btn"><input type="radio" name="t1_frustration" value="3"><span>3</span></label>
+              <label class="scale-btn"><input type="radio" name="t1_frustration" value="4"><span>4</span></label>
+              <label class="scale-btn"><input type="radio" name="t1_frustration" value="5"><span>5</span></label>
+              <label class="scale-btn"><input type="radio" name="t1_frustration" value="6"><span>6</span></label>
+              <label class="scale-btn"><input type="radio" name="t1_frustration" value="7"><span>7</span></label>
+            </div>
+            <span class="scale-endpoint-label">Extremely frustrated</span>
+          </div>
+        </div>
+
+
+        <!-- SECTION 2: TASK 2 PRIVACY -->
+        <div class="survey-section-divider">
+          <h3>Task 2: Privacy (App Permission Decision)</h3>
+          <p>Please answer the following questions based on the FitLife app permissions scenario you just completed.</p>
+        </div>
+
+        <!-- Q5: Recall -->
+        <div class="survey-question-card">
+          <label class="q-title">5. Recall: Which of the following data permissions was explicitly requested by the FitLife app? <span class="req-star">*</span></label>
+          <div class="radio-vertical-list">
+            <label class="radio-choice-item"><input type="radio" name="t2_recall" value="Microphone and Camera access" required><span>Microphone and Camera access</span></label>
+            <label class="radio-choice-item"><input type="radio" name="t2_recall" value="Location (including background) and Contacts"><span>Location (including background) and Contacts</span></label>
+            <label class="radio-choice-item"><input type="radio" name="t2_recall" value="Photo gallery and social media accounts"><span>Photo gallery and social media accounts</span></label>
+            <label class="radio-choice-item"><input type="radio" name="t2_recall" value="Biometric and fingerprint data"><span>Biometric and fingerprint data</span></label>
+          </div>
+        </div>
+
+        <!-- Q6: Consequence -->
+        <div class="survey-question-card">
+          <label class="q-title">6. Consequence: According to the privacy disclosure on the screen, what is a potential consequence of granting permissions to the app? <span class="req-star">*</span></label>
+          <div class="radio-vertical-list">
+            <label class="radio-choice-item"><input type="radio" name="t2_consequence" value="Your personal information may be shared with third-party service providers." required><span>Your personal information may be shared with third-party service providers.</span></label>
+            <label class="radio-choice-item"><input type="radio" name="t2_consequence" value="Your data is encrypted and permanently locked to your device."><span>Your data is encrypted and permanently locked to your device.</span></label>
+            <label class="radio-choice-item"><input type="radio" name="t2_consequence" value="Your account will automatically upgrade to a paid version."><span>Your account will automatically upgrade to a paid version.</span></label>
+            <label class="radio-choice-item"><input type="radio" name="t2_consequence" value="Your device's battery life will drain 50% faster."><span>Your device's battery life will drain 50% faster.</span></label>
+          </div>
+        </div>
+
+        <!-- Q7: Confidence (1-7) -->
+        <div class="survey-question-card">
+          <label class="q-title">7. Confidence: How confident are you that you made the best possible choice for this task? <span class="req-star">*</span></label>
+          <div class="scale-row-wrapper">
+            <span class="scale-endpoint-label">Not confident</span>
+            <div class="scale-numbers-group">
+              <label class="scale-btn"><input type="radio" name="t2_confidence" value="1" required><span>1</span></label>
+              <label class="scale-btn"><input type="radio" name="t2_confidence" value="2"><span>2</span></label>
+              <label class="scale-btn"><input type="radio" name="t2_confidence" value="3"><span>3</span></label>
+              <label class="scale-btn"><input type="radio" name="t2_confidence" value="4"><span>4</span></label>
+              <label class="scale-btn"><input type="radio" name="t2_confidence" value="5"><span>5</span></label>
+              <label class="scale-btn"><input type="radio" name="t2_confidence" value="6"><span>6</span></label>
+              <label class="scale-btn"><input type="radio" name="t2_confidence" value="7"><span>7</span></label>
+            </div>
+            <span class="scale-endpoint-label">Extremely confident</span>
+          </div>
+        </div>
+
+        <!-- Q8: Frustration (1-7) -->
+        <div class="survey-question-card">
+          <label class="q-title">8. Frustration: How frustrated did you feel while completing this digital decision? <span class="req-star">*</span></label>
+          <div class="scale-row-wrapper">
+            <span class="scale-endpoint-label">Not frustrated</span>
+            <div class="scale-numbers-group">
+              <label class="scale-btn"><input type="radio" name="t2_frustration" value="1" required><span>1</span></label>
+              <label class="scale-btn"><input type="radio" name="t2_frustration" value="2"><span>2</span></label>
+              <label class="scale-btn"><input type="radio" name="t2_frustration" value="3"><span>3</span></label>
+              <label class="scale-btn"><input type="radio" name="t2_frustration" value="4"><span>4</span></label>
+              <label class="scale-btn"><input type="radio" name="t2_frustration" value="5"><span>5</span></label>
+              <label class="scale-btn"><input type="radio" name="t2_frustration" value="6"><span>6</span></label>
+              <label class="scale-btn"><input type="radio" name="t2_frustration" value="7"><span>7</span></label>
+            </div>
+            <span class="scale-endpoint-label">Extremely frustrated</span>
+          </div>
+        </div>
+
+
+        <!-- SECTION 3: TASK 3 SUBSCRIPTION -->
+        <div class="survey-section-divider">
+          <h3>Task 3: Subscription (Auto-Renewal Decision)</h3>
+          <p>Please answer the following questions based on the Premium Membership scenario you just completed.</p>
+        </div>
+
+        <!-- Q9: Recall -->
+        <div class="survey-question-card">
+          <label class="q-title">9. Recall: What is the regular monthly price of the Premium Membership after the introductory period ends? <span class="req-star">*</span></label>
+          <div class="radio-vertical-list">
+            <label class="radio-choice-item"><input type="radio" name="t3_recall" value="₹99/month" required><span>₹99/month</span></label>
+            <label class="radio-choice-item"><input type="radio" name="t3_recall" value="₹299/month"><span>₹299/month</span></label>
+            <label class="radio-choice-item"><input type="radio" name="t3_recall" value="₹499/month"><span>₹499/month</span></label>
+            <label class="radio-choice-item"><input type="radio" name="t3_recall" value="It remains free forever"><span>It remains free forever</span></label>
+          </div>
+        </div>
+
+        <!-- Q10: Consequence -->
+        <div class="survey-question-card">
+          <label class="q-title">10. Consequence: If you selected "Start Introductory Offer" for ₹99, what action is required to avoid being charged the regular price next month? <span class="req-star">*</span></label>
+          <div class="radio-vertical-list">
+            <label class="radio-choice-item"><input type="radio" name="t3_consequence" value="No action is needed; the subscription cancels automatically." required><span>No action is needed; the subscription cancels automatically.</span></label>
+            <label class="radio-choice-item"><input type="radio" name="t3_consequence" value="You must email customer support within 30 days."><span>You must email customer support within 30 days.</span></label>
+            <label class="radio-choice-item"><input type="radio" name="t3_consequence" value="You must manually cancel through account settings before the next billing date."><span>You must manually cancel through account settings before the next billing date.</span></label>
+            <label class="radio-choice-item"><input type="radio" name="t3_consequence" value="You simply need to delete the application from your device."><span>You simply need to delete the application from your device.</span></label>
+          </div>
+        </div>
+
+        <!-- Q11: Confidence (1-7) -->
+        <div class="survey-question-card">
+          <label class="q-title">11. Confidence: How confident are you that you made the best possible choice for this task? <span class="req-star">*</span></label>
+          <div class="scale-row-wrapper">
+            <span class="scale-endpoint-label">Not confident</span>
+            <div class="scale-numbers-group">
+              <label class="scale-btn"><input type="radio" name="t3_confidence" value="1" required><span>1</span></label>
+              <label class="scale-btn"><input type="radio" name="t3_confidence" value="2"><span>2</span></label>
+              <label class="scale-btn"><input type="radio" name="t3_confidence" value="3"><span>3</span></label>
+              <label class="scale-btn"><input type="radio" name="t3_confidence" value="4"><span>4</span></label>
+              <label class="scale-btn"><input type="radio" name="t3_confidence" value="5"><span>5</span></label>
+              <label class="scale-btn"><input type="radio" name="t3_confidence" value="6"><span>6</span></label>
+              <label class="scale-btn"><input type="radio" name="t3_confidence" value="7"><span>7</span></label>
+            </div>
+            <span class="scale-endpoint-label">Extremely confident</span>
+          </div>
+        </div>
+
+        <!-- Q12: Frustration (1-7) -->
+        <div class="survey-question-card">
+          <label class="q-title">12. Frustration: How frustrated did you feel while completing this digital decision? <span class="req-star">*</span></label>
+          <div class="scale-row-wrapper">
+            <span class="scale-endpoint-label">Not frustrated</span>
+            <div class="scale-numbers-group">
+              <label class="scale-btn"><input type="radio" name="t3_frustration" value="1" required><span>1</span></label>
+              <label class="scale-btn"><input type="radio" name="t3_frustration" value="2"><span>2</span></label>
+              <label class="scale-btn"><input type="radio" name="t3_frustration" value="3"><span>3</span></label>
+              <label class="scale-btn"><input type="radio" name="t3_frustration" value="4"><span>4</span></label>
+              <label class="scale-btn"><input type="radio" name="t3_frustration" value="5"><span>5</span></label>
+              <label class="scale-btn"><input type="radio" name="t3_frustration" value="6"><span>6</span></label>
+              <label class="scale-btn"><input type="radio" name="t3_frustration" value="7"><span>7</span></label>
+            </div>
+            <span class="scale-endpoint-label">Extremely frustrated</span>
+          </div>
+        </div>
+
+
+        <!-- SECTION 4: POST-STUDY QUESTIONNAIRE -->
+        <div class="survey-section-divider">
+          <h3>Post-Study Reflection &amp; General Habits</h3>
+          <p>Please answer these final questions about your overall experience and general digital decision habits.</p>
+        </div>
+
+        <!-- Q13: Decision Regret (1-7) -->
+        <div class="survey-question-card">
+          <label class="q-title">13. Decision Regret: Thinking back on the three choices you just made, how much regret do you feel about your final decisions? <span class="req-star">*</span></label>
+          <div class="scale-row-wrapper">
+            <span class="scale-endpoint-label">No regret</span>
+            <div class="scale-numbers-group">
+              <label class="scale-btn"><input type="radio" name="post_regret" value="1" required><span>1</span></label>
+              <label class="scale-btn"><input type="radio" name="post_regret" value="2"><span>2</span></label>
+              <label class="scale-btn"><input type="radio" name="post_regret" value="3"><span>3</span></label>
+              <label class="scale-btn"><input type="radio" name="post_regret" value="4"><span>4</span></label>
+              <label class="scale-btn"><input type="radio" name="post_regret" value="5"><span>5</span></label>
+              <label class="scale-btn"><input type="radio" name="post_regret" value="6"><span>6</span></label>
+              <label class="scale-btn"><input type="radio" name="post_regret" value="7"><span>7</span></label>
+            </div>
+            <span class="scale-endpoint-label">High regret</span>
+          </div>
+        </div>
+
+        <!-- Q14: Rushed Decisions (1-5) -->
+        <div class="survey-question-card">
+          <label class="q-title">14. Rushed Decisions: Did you feel rushed while making any of the decisions during this experiment? <span class="req-star">*</span></label>
+          <div class="scale-row-wrapper">
+            <span class="scale-endpoint-label">Strongly Disagree</span>
+            <div class="scale-numbers-group">
+              <label class="scale-btn"><input type="radio" name="post_rushed" value="1" required><span>1</span></label>
+              <label class="scale-btn"><input type="radio" name="post_rushed" value="2"><span>2</span></label>
+              <label class="scale-btn"><input type="radio" name="post_rushed" value="3"><span>3</span></label>
+              <label class="scale-btn"><input type="radio" name="post_rushed" value="4"><span>4</span></label>
+              <label class="scale-btn"><input type="radio" name="post_rushed" value="5"><span>5</span></label>
+            </div>
+            <span class="scale-endpoint-label">Strongly Agree</span>
+          </div>
+        </div>
+
+        <!-- Q15: E-commerce Frequency -->
+        <div class="survey-question-card">
+          <label class="q-title">15. E-commerce Frequency: How often do you engage in digital transactions (e.g., online shopping, subscribing to services, downloading new apps)? <span class="req-star">*</span></label>
+          <div class="radio-vertical-list">
+            <label class="radio-choice-item"><input type="radio" name="post_ecommerce_freq" value="Daily" required><span>Daily</span></label>
+            <label class="radio-choice-item"><input type="radio" name="post_ecommerce_freq" value="Several times a week"><span>Several times a week</span></label>
+            <label class="radio-choice-item"><input type="radio" name="post_ecommerce_freq" value="A few times a month"><span>A few times a month</span></label>
+            <label class="radio-choice-item"><input type="radio" name="post_ecommerce_freq" value="Rarely or never"><span>Rarely or never</span></label>
+          </div>
+        </div>
+
+        <!-- Q16: Impulsive Clicking Habits (1-7) -->
+        <div class="survey-question-card">
+          <label class="q-title">16. Impulsive Clicking Habits: In your daily life, how often do you click "Buy Now", "Accept", or "Subscribe" without fully reading the terms or comparing options? <span class="req-star">*</span></label>
+          <div class="scale-row-wrapper">
+            <span class="scale-endpoint-label">Never</span>
+            <div class="scale-numbers-group">
+              <label class="scale-btn"><input type="radio" name="post_impulsive_click" value="1" required><span>1</span></label>
+              <label class="scale-btn"><input type="radio" name="post_impulsive_click" value="2"><span>2</span></label>
+              <label class="scale-btn"><input type="radio" name="post_impulsive_click" value="3"><span>3</span></label>
+              <label class="scale-btn"><input type="radio" name="post_impulsive_click" value="4"><span>4</span></label>
+              <label class="scale-btn"><input type="radio" name="post_impulsive_click" value="5"><span>5</span></label>
+              <label class="scale-btn"><input type="radio" name="post_impulsive_click" value="6"><span>6</span></label>
+              <label class="scale-btn"><input type="radio" name="post_impulsive_click" value="7"><span>7</span></label>
+            </div>
+            <span class="scale-endpoint-label">Always</span>
+          </div>
+        </div>
+
+        <!-- Q17: Prior Preferences -->
+        <div class="survey-question-card">
+          <label class="q-title">17. Prior Preferences: Before starting these tasks, did you have a strong personal preference to prioritize saving money and protecting privacy over speed and convenience? <span class="req-star">*</span></label>
+          <div class="radio-vertical-list">
+            <label class="radio-choice-item"><input type="radio" name="post_prior_pref" value="Yes" required><span>Yes</span></label>
+            <label class="radio-choice-item"><input type="radio" name="post_prior_pref" value="No"><span>No</span></label>
+            <label class="radio-choice-item"><input type="radio" name="post_prior_pref" value="Unsure"><span>Unsure</span></label>
+          </div>
+        </div>
+
+        <!-- Q18: General Feedback -->
+        <div class="survey-question-card">
+          <label class="q-title" for="txt-feedback">18. General Feedback: Do you have any additional thoughts on the interface or the decisions you had to make?</label>
+          <textarea id="txt-feedback" name="post_feedback" rows="3" class="form-textarea" placeholder="Share your observations, thoughts, or comments..."></textarea>
+        </div>
+
+        <div class="actions-row">
+          <button type="submit" id="btn-submit-survey" class="btn btn-primary btn-lg">Finish Study &amp; View Final Report &rarr;</button>
+        </div>
+      </form>
+    </section>
+
+
+    <!-- SCREEN 8: FINAL RESULTS & EXPERIMENT REPORT -->
+    <section id="screen-report" class="screen-card report-screen">
+      <div class="report-header-banner">
+        <div class="report-title-area">
+          <div class="completion-pill">✅ Experiment Completed</div>
+          <h2>Executive Experiment Report</h2>
+          <p class="text-muted">Behavioral decision analytics and participant summary</p>
+        </div>
+        <div class="report-export-actions no-print">
+          <button id="btn-export-pdf" class="btn btn-outline">🖨️ Print / Save PDF</button>
+          <button id="btn-export-csv" class="btn btn-outline">📥 Export Master CSV</button>
+          <button id="btn-restart" class="btn btn-danger-outline">🔄 Next Participant</button>
+        </div>
+      </div>
+
+      <!-- Live Master CSV Status Banner -->
+      <div id="csv-save-banner" class="csv-save-banner no-print">
+        <div class="csv-status-icon">💾</div>
+        <div class="csv-status-content">
+          <strong id="csv-status-title">Participant Finished & Data Logged</strong>
+          <p id="csv-status-detail">Updating master CSV with participant results...</p>
+        </div>
+        <div class="csv-status-actions">
+          <button id="btn-next-participant" class="btn btn-primary btn-sm">Start Next Participant &rarr;</button>
+        </div>
+      </div>
+
+      <!-- SECTION A: Overview -->
+      <div class="report-section">
+        <h3 class="report-sec-title">A. Experiment Overview</h3>
+        <div class="metrics-grid">
+          <div class="metric-card">
+            <span class="m-label">Participant ID</span>
+            <strong id="rep-pid" class="m-val highlight-val">-</strong>
+          </div>
+          <div class="metric-card">
+            <span class="m-label">Assigned Condition</span>
+            <strong id="rep-group" class="m-val">-</strong>
+          </div>
+          <div class="metric-card">
+            <span class="m-label">Pause Duration</span>
+            <strong id="rep-pause" class="m-val">-</strong>
+          </div>
+          <div class="metric-card">
+            <span class="m-label">Tasks Completed</span>
+            <strong id="rep-tasks-completed" class="m-val">3 of 3</strong>
+          </div>
+          <div class="metric-card">
+            <span class="m-label">Total Completion Time</span>
+            <strong id="rep-total-time" class="m-val">-</strong>
+          </div>
+        </div>
+      </div>
+
+      <!-- SECTION B: Decision Summary Table -->
+      <div class="report-section">
+        <h3 class="report-sec-title">B. Decision Summary</h3>
+        <div class="table-responsive">
+          <table class="report-table">
+            <thead>
+              <tr>
+                <th>Task</th>
+                <th>Selected Option</th>
+                <th>Initial Decision</th>
+                <th>Changed Decision?</th>
+                <th>Decision Time</th>
+              </tr>
+            </thead>
+            <tbody id="rep-table-body">
+              <!-- Rendered via JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- SECTION C: Task-wise Analysis -->
+      <div class="report-section">
+        <h3 class="report-sec-title">C. Task-wise Analysis</h3>
+        <div id="rep-task-analyses" class="task-analysis-container">
+          <!-- Rendered via JS -->
+        </div>
+      </div>
+
+      <!-- SECTION D: Behavioural Summary -->
+      <div class="report-section">
+        <h3 class="report-sec-title">D. Behavioural Summary</h3>
+        <div class="behaviour-grid">
+          <div class="b-item">
+            <span class="b-label">Total Decision Time (across tasks)</span>
+            <strong id="rep-total-dec-time" class="b-val">-</strong>
+          </div>
+          <div class="b-item">
+            <span class="b-label">Average Decision Time</span>
+            <strong id="rep-avg-dec-time" class="b-val">-</strong>
+          </div>
+          <div class="b-item">
+            <span class="b-label">Number of Decisions Changed</span>
+            <strong id="rep-dec-changed" class="b-val">-</strong>
+          </div>
+          <div class="b-item">
+            <span class="b-label">Countdowns Completed</span>
+            <strong id="rep-countdowns-done" class="b-val">-</strong>
+          </div>
+          <div class="b-item">
+            <span class="b-label">Privacy Permissions Selected</span>
+            <strong id="rep-privacy-stat" class="b-val">-</strong>
+          </div>
+          <div class="b-item">
+            <span class="b-label">Accepted Auto-Renewing Plan</span>
+            <strong id="rep-autorenew-stat" class="b-val">-</strong>
+          </div>
+        </div>
+      </div>
+
+      <!-- SECTION E: Questionnaire Results -->
+      <div class="report-section">
+        <h3 class="report-sec-title">E. Questionnaire Results</h3>
+        <div id="rep-survey-results" class="survey-results-box">
+          <!-- Rendered via JS -->
+        </div>
+      </div>
+
+      <!-- SECTION F: Final Participant Summary -->
+      <div class="report-section">
+        <h3 class="report-sec-title">F. Final Participant Summary</h3>
+        <div id="rep-participant-summary" class="summary-text-box">
+          <!-- Rendered via JS -->
+        </div>
+      </div>
+
+      <!-- Footer Actions -->
+      <div class="actions-row no-print" style="margin-top: 2rem;">
+        <button onclick="window.print()" class="btn btn-primary">🖨️ Print or Save as PDF</button>
+        <button id="btn-export-csv-bottom" class="btn btn-outline">📥 Download Experiment CSV</button>
+        <button id="btn-restart-bottom" class="btn btn-secondary">Start New Participant Session</button>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- RESEARCHER CONFIGURATION MODAL -->
+  <div id="modal-admin" class="modal-backdrop" style="display: none;">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>🔬 Researcher Experimental Settings</h3>
+        <button id="btn-close-modal" class="btn-close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p class="modal-desc">
+          Dynamically configure experimental parameters in accordance with Section 15 of the research specification. Changes will apply to future or current session as configured.
+        </p>
+
+        <div class="form-group">
+          <label for="cfg-condition-override"><strong>Participant Assignment Override:</strong></label>
+          <select id="cfg-condition-override" class="form-select">
+            <option value="random">Balanced Random Assignment (50/50)</option>
+            <option value="experimental">Force Experimental Group (Forced Pause)</option>
+            <option value="control">Force Control Group (Immediate Confirmation)</option>
+          </select>
+          <small class="form-hint">Used for controlled demonstration or testing.</small>
+        </div>
+
+        <div class="form-group">
+          <label for="cfg-pause-duration"><strong>Pause Duration (Experimental Group):</strong></label>
+          <div class="input-with-unit">
+            <input type="number" id="cfg-pause-duration" min="0" max="60" value="10" class="form-input">
+            <span class="unit-tag">seconds</span>
+          </div>
+          <div class="preset-buttons">
+            <button type="button" class="btn-preset" data-sec="0">0s (None)</button>
+            <button type="button" class="btn-preset" data-sec="5">5s</button>
+            <button type="button" class="btn-preset" data-sec="10">10s (Default)</button>
+            <button type="button" class="btn-preset" data-sec="15">15s</button>
+            <button type="button" class="btn-preset" data-sec="20">20s</button>
+            <button type="button" class="btn-preset" data-sec="30">30s</button>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>
+            <input type="checkbox" id="cfg-apply-all" checked>
+            Apply duration equally across all 3 decision tasks
+          </label>
+        </div>
+
+        <!-- Per-task custom durations (expandable) -->
+        <div id="cfg-per-task-container" style="display: none; padding-left: 1rem; border-left: 2px solid var(--primary); margin-top: -0.5rem; margin-bottom: 0.5rem;">
+          <div class="form-group" style="margin-bottom: 0.5rem;">
+            <label for="cfg-pause-task1" style="font-size: 0.85rem;">Task 1 (Shopping):</label>
+            <div class="input-with-unit">
+              <input type="number" id="cfg-pause-task1" min="0" max="60" value="10" class="form-input" style="padding: 0.35rem 0.5rem;">
+              <span class="unit-tag">sec</span>
+            </div>
+          </div>
+          <div class="form-group" style="margin-bottom: 0.5rem;">
+            <label for="cfg-pause-task2" style="font-size: 0.85rem;">Task 2 (Permissions):</label>
+            <div class="input-with-unit">
+              <input type="number" id="cfg-pause-task2" min="0" max="60" value="10" class="form-input" style="padding: 0.35rem 0.5rem;">
+              <span class="unit-tag">sec</span>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="cfg-pause-task3" style="font-size: 0.85rem;">Task 3 (Subscription):</label>
+            <div class="input-with-unit">
+              <input type="number" id="cfg-pause-task3" min="0" max="60" value="10" class="form-input" style="padding: 0.35rem 0.5rem;">
+              <span class="unit-tag">sec</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="admin-data-summary">
+          <h4>GitHub Actions Continuous Sync</h4>
+          <div class="form-group" style="margin-bottom: 0.5rem;">
+            <label for="cfg-gh-repo" style="font-size: 0.85rem;"><strong>Target Repository:</strong></label>
+            <input type="text" id="cfg-gh-repo" value="TungDucVu/Simulated-Decision-Making-Experiment" class="form-input" style="font-size: 0.85rem;">
+          </div>
+          <div class="form-group" style="margin-bottom: 0.5rem;">
+            <label for="cfg-gh-token" style="font-size: 0.85rem;"><strong>GitHub Token (Optional for direct dispatch):</strong></label>
+            <input type="password" id="cfg-gh-token" placeholder="ghp_xxxxxxxxxxxx" class="form-input" style="font-size: 0.85rem;">
+            <small class="form-hint">Enables browser-to-GitHub live workflow triggers without a backend.</small>
+          </div>
+          <button id="btn-sync-github" class="btn btn-sm btn-outline">🚀 Trigger GitHub Action Sync</button>
+        </div>
+
+        <div class="admin-data-summary">
+          <h4>Local Experiment Storage</h4>
+          <p id="admin-storage-info">Stored local sessions: 0</p>
+          <button id="btn-export-all-data" class="btn btn-sm btn-outline">Export All Session History (CSV)</button>
+          <button id="btn-clear-all-data" class="btn btn-sm btn-danger-outline">Clear Stored Sessions</button>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button id="btn-save-settings" class="btn btn-primary">Save Settings</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
+
