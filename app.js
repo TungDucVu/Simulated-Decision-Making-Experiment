@@ -33,6 +33,7 @@
     participantId: '',
     assignedCondition: '', // 'Experimental' or 'Control'
     configuredPauseDuration: 10,
+    hasSyncedToMaster: false,
     currentScreen: 'welcome', // 'welcome', 'instructions', 'task1', 'task2', 'task3', 'questionnaire', 'report'
     experimentStartTime: null,
     experimentEndTime: null,
@@ -449,6 +450,7 @@
 
     appState.experimentStartTime = Date.now();
     appState.experimentEndTime = null;
+    appState.hasSyncedToMaster = false;
 
     if (appState.timer.intervalId) {
       clearInterval(appState.timer.intervalId);
@@ -766,6 +768,8 @@
 
     // Automatically append participant result to master CSV
     await syncParticipantToMasterCSV(allSessions);
+    appState.hasSyncedToMaster = true;
+    persistSession();
   }
 
   // --- Report Generation & Presentation ---
@@ -1094,11 +1098,12 @@
 
   // --- Restart Experiment / Next Study ---
   async function restartExperiment() {
-    // Ensure current participant is archived and synced before clearing session
-    if (appState.participantId && appState.experimentEndTime) {
+    // Only attempt sync before clearing session if it wasn't already synced
+    if (appState.participantId && appState.experimentEndTime && !appState.hasSyncedToMaster) {
       const allSessions = archiveSession();
       try {
         await syncParticipantToMasterCSV(allSessions);
+        appState.hasSyncedToMaster = true;
       } catch (err) {
         console.warn('Sync error before restart:', err);
       }

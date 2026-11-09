@@ -12,6 +12,10 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: record_csv_pool
+  cancel-in-progress: false
+
 jobs:
   record:
     runs-on: ubuntu-latest
