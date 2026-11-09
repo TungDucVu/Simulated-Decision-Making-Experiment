@@ -593,22 +593,29 @@
 
     // Timer handling
     if (isExperimental && pauseSeconds > 0) {
-      if (pauseBanner) pauseBanner.style.display = 'block';
-
       // Check if timer already finished in this session
       if (task.countdownCompleted) {
-        if (countdownVal) countdownVal.textContent = '0';
         if (pauseBanner) {
+          pauseBanner.style.display = 'block';
           pauseBanner.classList.add('completed');
           const h4 = pauseBanner.querySelector('h4');
           const p = pauseBanner.querySelector('p');
           if (h4) h4.textContent = 'Review Period Complete';
           if (p) p.textContent = 'You may now confirm your selection.';
         }
+        if (countdownVal) countdownVal.textContent = '0';
         updateConfirmButtonState(taskId, 0);
-      } else {
-        // Start Countdown
+      } else if (appState.timer.active && appState.timer.targetTime && task.finalSelection) {
+        // Resume active countdown if reloaded mid-countdown after selection
+        if (pauseBanner) pauseBanner.style.display = 'block';
         startCountdown(taskId, pauseSeconds, countdownVal, confirmBtn, pauseBanner);
+      } else {
+        // Option NOT selected yet: DO NOT start timer yet!
+        // Timer will start automatically when participant selects an option
+        if (pauseBanner) pauseBanner.style.display = 'none';
+        if (countdownVal) countdownVal.textContent = pauseSeconds;
+        task.countdownCompleted = false;
+        updateConfirmButtonState(taskId, pauseSeconds);
       }
     } else {
       // Control Group: Immediate Confirmation
@@ -620,6 +627,17 @@
 
   function startCountdown(taskId, durationSec, displayElem, confirmBtn, bannerElem) {
     const task = appState.tasks[taskId];
+
+    if (bannerElem) {
+      bannerElem.style.display = 'block';
+      bannerElem.classList.remove('completed');
+      bannerElem.style.background = '';
+      bannerElem.style.borderColor = '';
+      const h4 = bannerElem.querySelector('h4');
+      const p = bannerElem.querySelector('p');
+      if (h4) h4.textContent = 'Review Period in Progress';
+      if (p) p.textContent = 'Take a moment to review the key information before confirming your decision.';
+    }
 
     // Clear any previous interval
     if (appState.timer.intervalId) {
@@ -709,15 +727,36 @@
 
     markOptionSelected(taskId, option);
 
-    // Compute remaining timer if active
-    let rem = 0;
-    if (appState.timer.active && appState.timer.targetTime) {
-      rem = Math.max(0, Math.ceil((appState.timer.targetTime - Date.now()) / 1000));
+    const isExperimental = appState.assignedCondition === 'Experimental';
+    const taskPauseSec = (appState.taskDurations && appState.taskDurations[taskId] !== undefined)
+      ? appState.taskDurations[taskId]
+      : appState.configuredPauseDuration;
+    const pauseSeconds = isExperimental ? taskPauseSec : 0;
+
+    const { pauseBanner, countdownVal, confirmBtn } = getTaskElements(taskId);
+
+    // If Experimental group with pause:
+    if (isExperimental && pauseSeconds > 0) {
+      if (!task.countdownCompleted) {
+        // Start review countdown upon selecting an option
+        if (pauseBanner) pauseBanner.style.display = 'block';
+        if (!appState.timer.active) {
+          startCountdown(taskId, pauseSeconds, countdownVal, confirmBtn, pauseBanner);
+        } else {
+          let rem = Math.max(0, Math.ceil((appState.timer.targetTime - Date.now()) / 1000));
+          updateConfirmButtonState(taskId, rem);
+        }
+      } else {
+        // Countdown was already completed previously for this task
+        updateConfirmButtonState(taskId, 0);
+      }
+    } else {
+      // Control group: immediate confirmation
+      task.countdownCompleted = true;
+      updateConfirmButtonState(taskId, 0);
     }
-    updateConfirmButtonState(taskId, rem);
 
     // Smoothly ensure confirm button is visible in viewport
-    const { confirmBtn } = getTaskElements(taskId);
     if (confirmBtn) {
       confirmBtn.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
