@@ -37,11 +37,15 @@ jobs:
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
           git add data/experiment_results.csv
-          if git diff --staged --quiet; then
-            echo "No changes to commit."
-          else
-            git pull --rebase origin main
+          if ! git diff --staged --quiet; then
+            echo "Changes detected in data/experiment_results.csv. Committing..."
             git commit -m "chore(data): record response from participant [skip ci]"
+            echo "Pulling latest changes with rebase..."
+            git pull --rebase origin main
+            echo "Pushing updated CSV to main..."
             git push origin main
+            echo "Successfully updated experiment_results.csv on GitHub!"
+          else
+            echo "No new participant changes detected."
           fi
 

@@ -158,17 +158,26 @@ function main() {
 
   // Read existing content to check existing IDs
   let existingContent = fs.readFileSync(CSV_FILE, 'utf8');
+  const existingLines = existingContent.split('\n').filter(l => l.trim().length > 0);
+  const existingIds = new Set(existingLines.map(line => {
+    const match = line.match(/^"([^"]+)"/);
+    return match ? match[1] : '';
+  }));
+
   let appendedCount = 0;
 
   participants.forEach(p => {
-    if (!p || !p.participantId) return;
-    if (existingContent.includes(`"${p.participantId}"`) || existingContent.includes(p.participantId)) {
+    if (!p) return;
+    if (!p.participantId) {
+      p.participantId = 'PART-' + Math.random().toString(36).substring(2, 8).toUpperCase();
+    }
+    if (existingIds.has(p.participantId)) {
       console.log(`Participant ${p.participantId} already exists in CSV. Skipping duplicate.`);
       return;
     }
     const row = formatParticipantRow(p);
     fs.appendFileSync(CSV_FILE, row + '\n', 'utf8');
-    existingContent += row + '\n';
+    existingIds.add(p.participantId);
     appendedCount++;
     console.log(`Appended participant: ${p.participantId}`);
   });

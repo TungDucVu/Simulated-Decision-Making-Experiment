@@ -430,7 +430,7 @@
   function initializeParticipantSession() {
     const config = getResearcherConfig();
     appState.participantId = generateParticipantId();
-    appState.configuredPauseDuration = parseInt(config.pauseDuration, 10) || 10;
+    appState.configuredPauseDuration = isNaN(parseInt(config.pauseDuration, 10)) ? 10 : Math.max(0, parseInt(config.pauseDuration, 10));
     appState.taskDurations = config.applyAllTasks ? {
       task1: appState.configuredPauseDuration,
       task2: appState.configuredPauseDuration,
@@ -1124,8 +1124,25 @@
 
   function openResearcherModal() {
     const config = getResearcherConfig();
-    cfgPauseInput.value = config.pauseDuration;
-    cfgOverrideSelect.value = config.assignmentMode;
+    cfgPauseInput.value = config.pauseDuration !== undefined ? config.pauseDuration : 10;
+    cfgOverrideSelect.value = config.assignmentMode || 'random';
+
+    const applyAllInput = document.getElementById('cfg-apply-all');
+    const perTaskContainer = document.getElementById('cfg-per-task-container');
+    if (applyAllInput) {
+      applyAllInput.checked = config.applyAllTasks !== false;
+      if (perTaskContainer) {
+        perTaskContainer.style.display = applyAllInput.checked ? 'none' : 'block';
+      }
+    }
+
+    const tDur = config.taskDurations || { task1: 10, task2: 10, task3: 10 };
+    const t1Input = document.getElementById('cfg-pause-task1');
+    const t2Input = document.getElementById('cfg-pause-task2');
+    const t3Input = document.getElementById('cfg-pause-task3');
+    if (t1Input) t1Input.value = tDur.task1 !== undefined ? tDur.task1 : 10;
+    if (t2Input) t2Input.value = tDur.task2 !== undefined ? tDur.task2 : 10;
+    if (t3Input) t3Input.value = tDur.task3 !== undefined ? tDur.task3 : 10;
 
     const ghRepoInput = document.getElementById('cfg-gh-repo');
     const ghTokenInput = document.getElementById('cfg-gh-token');
@@ -1148,20 +1165,57 @@
   }
 
   function saveResearcherSettings() {
-    const pauseVal = Math.max(0, parseInt(cfgPauseInput.value, 10) || 0);
+    const pauseVal = isNaN(parseInt(cfgPauseInput.value, 10)) ? 10 : Math.max(0, parseInt(cfgPauseInput.value, 10));
     const assignVal = cfgOverrideSelect.value;
     const ghRepoInput = document.getElementById('cfg-gh-repo');
     const ghTokenInput = document.getElementById('cfg-gh-token');
+    const applyAllInput = document.getElementById('cfg-apply-all');
+    const isApplyAll = applyAllInput ? applyAllInput.checked : true;
+
+    const t1Input = document.getElementById('cfg-pause-task1');
+    const t2Input = document.getElementById('cfg-pause-task2');
+    const t3Input = document.getElementById('cfg-pause-task3');
+
+    const t1Val = isApplyAll ? pauseVal : (isNaN(parseInt(t1Input?.value, 10)) ? pauseVal : Math.max(0, parseInt(t1Input.value, 10)));
+    const t2Val = isApplyAll ? pauseVal : (isNaN(parseInt(t2Input?.value, 10)) ? pauseVal : Math.max(0, parseInt(t2Input.value, 10)));
+    const t3Val = isApplyAll ? pauseVal : (isNaN(parseInt(t3Input?.value, 10)) ? pauseVal : Math.max(0, parseInt(t3Input.value, 10)));
 
     const newConfig = {
       pauseDuration: pauseVal,
       assignmentMode: assignVal,
-      applyAllTasks: true,
+      applyAllTasks: isApplyAll,
+      taskDurations: {
+        task1: t1Val,
+        task2: t2Val,
+        task3: t3Val
+      },
       ghRepo: ghRepoInput ? ghRepoInput.value.trim() : 'TungDucVu/Simulated-Decision-Making-Experiment',
       ghToken: ghTokenInput ? ghTokenInput.value.trim() : ''
     };
     saveResearcherConfig(newConfig);
-    alert(`Settings updated! Pause Duration: ${pauseVal}s | Condition: ${assignVal}. Will apply to new sessions.`);
+
+    // Apply IMMEDIATELY to active session so user sees changes right away
+    appState.configuredPauseDuration = pauseVal;
+    appState.taskDurations = newConfig.taskDurations;
+    if (assignVal !== 'random') {
+      appState.assignedCondition = assignVal === 'experimental' ? 'Experimental' : 'Control';
+    }
+    persistSession();
+
+    // If currently on an active task screen, immediately restart that screen with the new duration!
+    if (['task1', 'task2', 'task3'].includes(appState.currentScreen)) {
+      const task = appState.tasks[appState.currentScreen];
+      task.countdownCompleted = false;
+      appState.timer.active = false;
+      appState.timer.targetTime = null;
+      if (appState.timer.intervalId) {
+        clearInterval(appState.timer.intervalId);
+        appState.timer.intervalId = null;
+      }
+      initTaskScreen(appState.currentScreen);
+    }
+
+    alert(`Settings saved!\nPause Duration: ${pauseVal}s (T1: ${t1Val}s, T2: ${t2Val}s, T3: ${t3Val}s)\nCondition: ${assignVal}`);
     closeResearcherModal();
   }
 
@@ -1207,9 +1261,26 @@
   // Preset buttons in modal
   document.querySelectorAll('.btn-preset').forEach(btn => {
     btn.addEventListener('click', () => {
-      cfgPauseInput.value = btn.getAttribute('data-sec');
+      const sec = btn.getAttribute('data-sec');
+      cfgPauseInput.value = sec;
+      const t1Input = document.getElementById('cfg-pause-task1');
+      const t2Input = document.getElementById('cfg-pause-task2');
+      const t3Input = document.getElementById('cfg-pause-task3');
+      if (t1Input) t1Input.value = sec;
+      if (t2Input) t2Input.value = sec;
+      if (t3Input) t3Input.value = sec;
     });
   });
+
+  const applyAllCheckbox = document.getElementById('cfg-apply-all');
+  if (applyAllCheckbox) {
+    applyAllCheckbox.addEventListener('change', () => {
+      const perTaskContainer = document.getElementById('cfg-per-task-container');
+      if (perTaskContainer) {
+        perTaskContainer.style.display = applyAllCheckbox.checked ? 'none' : 'block';
+      }
+    });
+  }
 
   // --- Event Binding ---
   function initEventListeners() {
