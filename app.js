@@ -1036,15 +1036,23 @@
       .replace(/'/g, '&#039;');
   }
 
-  // --- Restart Experiment ---
-  function restartExperiment() {
-    if (confirm('Start a new participant session? Current participant data has been saved.')) {
-      sessionStorage.removeItem(STORAGE_KEYS.CURRENT_SESSION);
-      if (appState.timer.intervalId) {
-        clearInterval(appState.timer.intervalId);
+  // --- Restart Experiment / Next Study ---
+  async function restartExperiment() {
+    // Ensure current participant is archived and synced before clearing session
+    if (appState.participantId && appState.experimentEndTime) {
+      const allSessions = archiveSession();
+      try {
+        await syncParticipantToMasterCSV(allSessions);
+      } catch (err) {
+        console.warn('Sync error before restart:', err);
       }
-      location.reload();
     }
+
+    sessionStorage.removeItem(STORAGE_KEYS.CURRENT_SESSION);
+    if (appState.timer.intervalId) {
+      clearInterval(appState.timer.intervalId);
+    }
+    location.reload();
   }
 
   // --- Researcher Settings Modal Controller ---
