@@ -132,7 +132,18 @@ function main() {
     process.exit(1);
   }
 
-  const participants = Array.isArray(parsed) ? parsed : [parsed];
+  let participants = [];
+  if (Array.isArray(parsed)) {
+    participants = parsed;
+  } else if (parsed && Array.isArray(parsed.sessions)) {
+    participants = parsed.sessions;
+  } else if (parsed && parsed.participant) {
+    participants = [parsed.participant];
+  } else if (parsed && parsed.data) {
+    participants = Array.isArray(parsed.data) ? parsed.data : [parsed.data];
+  } else if (parsed && parsed.participantId) {
+    participants = [parsed];
+  }
 
   // Ensure data directory exists
   const dataDir = path.dirname(CSV_FILE);

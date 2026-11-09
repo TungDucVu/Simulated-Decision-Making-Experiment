@@ -200,6 +200,15 @@
     }
   }
 
+  function cleanRepoName(repoStr) {
+    if (!repoStr) return 'TungDucVu/Simulated-Decision-Making-Experiment';
+    return repoStr
+      .trim()
+      .replace(/^https?:\/\/github\.com\//i, '')
+      .replace(/\.git$/i, '')
+      .replace(/^\/+|\/+$/g, '');
+  }
+
   // Sync participant result to master CSV on disk, GitHub Actions, or browser master archive
   async function syncParticipantToMasterCSV(allSessions) {
     const titleElem = document.getElementById('csv-status-title');
@@ -229,17 +238,21 @@
     // 2. Attempt GitHub Action Workflow Dispatch if configured
     const config = getResearcherConfig();
     if (config.ghToken && config.ghRepo) {
+      const cleanRepo = cleanRepoName(config.ghRepo);
       try {
-        const ghRes = await fetch(`https://api.github.com/repos/${config.ghRepo}/dispatches`, {
+        const ghRes = await fetch(`https://api.github.com/repos/${cleanRepo}/dispatches`, {
           method: 'POST',
           headers: {
-            'Accept': 'application/vnd.github.v3+json',
-            'Authorization': `Bearer ${config.ghToken}`,
+            'Accept': 'application/vnd.github+json',
+            'Authorization': `Bearer ${config.ghToken.trim()}`,
+            'X-GitHub-Api-Version': '2022-11-28',
             'Content-Type': 'application/json'
           },
           body: JSON.stringify({
             event_type: 'record_response',
-            client_payload: appState
+            client_payload: {
+              participant: appState
+            }
           })
         });
 
@@ -1115,23 +1128,28 @@
     const list = raw ? JSON.parse(raw) : [appState];
 
     if (!config.ghToken) {
-      const enteredToken = prompt('Enter your GitHub Personal Access Token (PAT) with repo/workflow permissions to dispatch:');
+      const enteredToken = prompt('Enter your GitHub Personal Access Token (PAT) with repo/actions permissions:');
       if (!enteredToken) return;
       config.ghToken = enteredToken.trim();
       saveResearcherConfig(config);
     }
 
+    const cleanRepo = cleanRepoName(config.ghRepo);
+
     try {
-      const res = await fetch(`https://api.github.com/repos/${config.ghRepo}/dispatches`, {
+      const res = await fetch(`https://api.github.com/repos/${cleanRepo}/dispatches`, {
         method: 'POST',
         headers: {
-          'Accept': 'application/vnd.github.v3+json',
-          'Authorization': `Bearer ${config.ghToken}`,
+          'Accept': 'application/vnd.github+json',
+          'Authorization': `Bearer ${config.ghToken.trim()}`,
+          'X-GitHub-Api-Version': '2022-11-28',
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
           event_type: 'record_response',
-          client_payload: list
+          client_payload: {
+            sessions: list
+          }
         })
       });
 
@@ -1139,7 +1157,7 @@
         alert(`🚀 Success! Dispatched ${list.length} participant session(s) to GitHub Actions workflow. Check the Actions tab in your repository.`);
       } else {
         const errText = await res.text();
-        alert(`GitHub API responded with status ${res.status}: ${errText}`);
+        alert(`GitHub API Error (${res.status}): ${errText}\n\nTip: Ensure the token has 'Actions: Read and write' and 'Contents: Read and write' permissions on ${cleanRepo}.`);
       }
     } catch (err) {
       alert(`Network error dispatching to GitHub: ${err.message}`);
